@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AZ-104 Exam Prep Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .flashcard-container { perspective: 1000px; height: 220px; }
+        .flashcard-inner { 
+            position: relative; 
+            width: 100%; 
+            height: 100%; 
+            text-align: center; 
+            transition: transform 0.6s; 
+            transform-style: preserve-3d; 
+            cursor: pointer;
+        }
+        .flashcard-container.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            backface-visibility: hidden; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+        }
+        .flashcard-back { transform: rotateY(180deg); }
+        
+        .view-content { display: none; }
+        .view-content.active { display: block; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .donut-ring { transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        
+        .module-card:hover { transform: translateY(-4px); transition: all 0.2s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <!-- Global Header -->
+    <nav class="bg-indigo-700 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-xl font-bold flex items-center gap-2 cursor-pointer" onclick="showView('dashboard')">
+                <i data-lucide="graduation-cap"></i> AZ-104 Exam Prep
+            </h1>
+            <div id="module-nav" class="hidden flex flex-wrap justify-center gap-2">
+                <button onclick="showTab('notes')" class="tab-btn px-3 py-1.5 rounded-lg bg-indigo-800 hover:bg-indigo-600 transition active" data-tab="notes">Notes</button>
+                <button onclick="showTab('mindmap')" class="tab-btn px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition" data-tab="mindmap">Mind-Map</button>
+                <button onclick="showTab('flashcards')" class="tab-btn px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition" data-tab="flashcards">Flashcards</button>
+                <button onclick="showTab('quiz')" class="tab-btn px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition" data-tab="quiz">Quiz</button>
+                <button onclick="showView('dashboard')" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-1">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Modules
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-8">
+        
+        <!-- DASHBOARD VIEW -->
+        <section id="dashboard-view" class="view-content active space-y-8">
+            <header class="text-center space-y-2">
+                <h2 class="text-3xl font-extrabold text-slate-800">Microsoft Certified: Azure Administrator Associate</h2>
+                <p class="text-slate-500">Select an AZ-104 module to access study notes, mind-maps, and practice tests.</p>
+            </header>
+
+            <div id="module-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Modules injected via JS -->
+            </div>
+        </section>
+
+        <!-- UNIFIED MODULE VIEW -->
+        <section id="module-view" class="view-content space-y-8">
+            <div class="flex items-center gap-4 mb-2">
+                <button onclick="showView('dashboard')" class="p-2 rounded-full hover:bg-slate-200 text-slate-600 transition">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <h2 id="current-module-title" class="text-2xl font-bold text-slate-800">Module Detail</h2>
+            </div>
+
+            <!-- NOTES TAB -->
+            <div id="notes" class="tab-content active space-y-6">
+                <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Notes injected via JS -->
+                </div>
+            </div>
+
+            <!-- MINDMAP TAB -->
+            <div id="mindmap" class="tab-content space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[400px] flex flex-col items-center justify-center overflow-auto">
+                    <div id="mindmap-container" class="w-full max-w-2xl">
+                        <!-- Mindmap SVG injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLASHCARDS TAB -->
+            <div id="flashcards" class="tab-content space-y-6">
+                <div class="flex justify-between items-center px-2">
+                    <p class="text-slate-500 text-sm italic">Click to reveal the answer.</p>
+                    <button onclick="flipAllCards()" class="text-xs px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg font-bold">FLIP ALL</button>
+                </div>
+                <div id="flashcards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Cards injected via JS -->
+                </div>
+            </div>
+
+            <!-- QUIZ TAB -->
+            <div id="quiz" class="tab-content space-y-6">
+                <div id="quiz-start" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
+                    <i data-lucide="zap" class="mx-auto w-12 h-12 text-yellow-500"></i>
+                    <h2 class="text-xl font-bold">Module Knowledge Check</h2>
+                    <p class="text-slate-500 max-w-sm mx-auto">Practice your understanding of this module's core concepts.</p>
+                    <button onclick="startQuiz()" class="px-8 py-3 rounded-xl bg-indigo-700 text-white font-bold">Start Practice Quiz</button>
+                </div>
+
+                <div id="quiz-container" class="hidden grid md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+                        <div class="relative w-32 h-32 mb-4">
+                            <svg viewBox="0 0 120 120" class="w-full h-full">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" stroke-width="8" />
+                                <circle cx="60" cy="60" r="38" fill="none" stroke="#f1f5f9" stroke-width="8" />
+                                <circle id="ring-attempted" cx="60" cy="60" r="50" fill="none" stroke="#6366f1" stroke-width="8" stroke-linecap="round" class="donut-ring" stroke-dasharray="314" stroke-dashoffset="314" />
+                                <circle id="ring-correct" cx="60" cy="60" r="38" fill="none" stroke="#22c55e" stroke-width="8" stroke-linecap="round" class="donut-ring" stroke-dasharray="239" stroke-dashoffset="239" />
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center text-lg font-bold" id="accuracy-text">0%</div>
+                        </div>
+                        <div class="w-full text-sm space-y-1">
+                            <div class="flex justify-between"><span>Attempted:</span> <span id="stat-attempted" class="font-bold">0/10</span></div>
+                            <div class="flex justify-between text-green-600"><span>Correct:</span> <span id="stat-correct" class="font-bold">0</span></div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div class="text-indigo-600 font-bold mb-2 text-sm" id="quiz-progress-text">Question 1/10</div>
+                        <h3 class="text-lg font-bold mb-6" id="quiz-question">Loading...</h3>
+                        <div class="grid gap-2" id="quiz-options"></div>
+                    </div>
+                </div>
+
+                <div id="quiz-result" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
+                    <h2 class="text-2xl font-bold">Module Result</h2>
+                    <div class="text-5xl font-bold text-indigo-700" id="quiz-score">0/10</div>
+                    <button onclick="resetQuiz()" class="px-6 py-2 rounded-lg bg-indigo-700 text-white font-bold">Restart Test</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-20 p-8 border-t border-slate-200 text-center text-slate-400 text-sm">
+        <p>AZ-104 Exam Preparation Hub &copy; 2026</p>
+    </footer>
+
+    <script>
+        // Module Data Structure
+        const modules = [
+            { 
+                id: 1, 
+                name: "Prerequisites for Azure administrators", 
+                desc: "Initial tools: Azure portal, Cloud Shell, Azure PowerShell, CLI, and ARM templates.", 
+                icon: "wrench", color: "blue" 
+            },
+            { 
+                id: 2, 
+                name: "Manage identities", 
+                desc: "Microsoft Entra users and groups, managing external users, and configuring SSPR.", 
+                icon: "users", color: "indigo" 
+            },
+            { 
+                id: 3, 
+                name: "Governance in Azure", 
+                desc: "implementing Azure roles, applying Azure policy, and governance controls.", 
+                icon: "shield-check", color: "purple" 
+            },
+            { 
+                id: 4, 
+                name: "Implement and manage storage", 
+                desc: "Access keys, SAS tokens, Azure files, and blob storage implementation.", 
+                icon: "database", color: "cyan" 
+            },
+            { 
+                id: 5, 
+                name: "Deploy and manage compute resources", 
+                desc: "Virtual Machines, automated deployment, containers, and web apps.", 
+                icon: "cpu", color: "orange" 
+            },
+            { 
+                id: 6, 
+                name: "Configure and manage virtual networks", 
+                desc: "VNETs, securing access with NSGs, load balancing, and hybrid connectivity.", 
+                icon: "share-2", color: "emerald" 
+            },
+            { 
+                id: 7, 
+                name: "Monitor and back up resources", 
+                desc: "Azure Monitor, Log Analytics, alerts, and backup solutions.", 
+                icon: "activity", color: "rose" 
+            }
+        ];
+
+        // Specific Module Content
+        const contentData = {
+            3: {
+                notes: [
+                    { title: "Physical Infrastructure", items: ["Datacenters: Buildings with servers.", "Regions: Latency-connected datacenters.", "Availability Zones: Physically separate datacenters (independent power/cooling).", "Region Pairs: 300+ miles apart for DR."] },
+                    { title: "Governance Hierarchy", items: ["Management Groups: Rooted tree (up to 6 deep) for policy aggregation.", "Subscriptions: Unit of billing.", "Resource Groups: Share deployment lifecycle.", "Resources: Service instances."] },
+                    { title: "RBAC & ABAC", items: ["RBAC: Principal + Role + Scope.", "Role ID: GUID (persistent unique ID).", "ABAC: Adds Conditions (e.g., tags) to role assignments.", "Supported for: Blob and Queue data actions."] },
+                    { title: "Azure Policy", items: ["Definitions: JSON rules.", "Initiatives: Collections of policies.", "Evaluation: Happens at creation, update, and during compliance scans.", "Remediation: Fixes existing resources."] },
+                    { title: "Best Practices", items: ["Maximum 3 subscription owners recommended.", "Assign roles to Groups, not individual users.", "Use PIM (Privileged Identity Management) for JIT access.", "Activity Log: Stores RBAC changes for 90 days."] }
+                ],
+                flashcards: [
+                    { q: "Availability Zone", a: "Physically separate datacenters within a region with independent power/cooling." },
+                    { q: "Management Group", a: "Container used to apply policies and RBAC for multiple subscriptions at scale." },
+                    { q: "Region Pair", a: "Two regions within a geography at least 300 miles apart for regional DR." },
+                    { q: "Azure ABAC", a: "Attribute-Based Access Control filtering permissions based on resource tags/conditions." },
+                    { q: "Least Privilege", a: "Granting only the specific access required for a task at the narrowest scope." },
+                    { q: "Activity Log Retention", a: "RBAC changes are stored for 90 days in the Azure Activity Log." },
+                    { q: "PIM", a: "Microsoft Entra Privileged Identity Management for Just-in-Time access." },
+                    { q: "Subscription Limit", a: "Current limit of 4,000 role assignments per subscription." }
+                ],
+                quiz: [
+                    { q: "Which component protects against a datacenter failure?", options: ["Regions", "Availability Zones", "Subscriptions", "Resource Groups"], correct: 1 },
+                    { q: "What is the maximum depth of a Management Group tree?", options: ["3 levels", "6 levels", "10 levels", "Unlimited"], correct: 1 },
+                    { q: "Why should you use Group assignments for RBAC?", options: ["It's faster to deploy", "It bypasses subscription limits", "Improves manageability and reduces individual role assignment limits", "It's required by Azure Policy"], correct: 2 },
+                    { q: "What tool allows for Just-In-Time access to privileged roles?", options: ["Azure Policy", "Activity Log", "Microsoft Entra PIM", "Resource Tags"], correct: 2 },
+                    { q: "Which role can assign roles in Azure RBAC?", options: ["Contributor", "Reader", "Owner", "Billing Reader"], correct: 2 },
+                    { q: "What is the primary benefit of Region Pairs?", options: ["Cheaper storage", "Regional disaster recovery with data residency", "Faster deployment", "Lower latency"], correct: 1 },
+                    { q: "Azure ABAC is primarily used to...", options: ["Create billing reports", "Apply fine-grained conditions to role assignments", "Manage Azure regions", "Enforce compliance scans"], correct: 1 },
+                    { q: "Where does inheritance flow in the Azure hierarchy?", options: ["Bottom up", "Horizontally", "Management Group down to Resources", "Subscription to Tenant"], correct: 2 },
+                    { q: "How long are RBAC changes stored in the Activity Log?", options: ["30 days", "90 days", "1 year", "Indefinitely"], correct: 1 },
+                    { q: "What happens during an Azure Policy remediation task?", options: ["The policy is deleted", "The subscription is disabled", "Non-compliant resources are automatically updated", "Audit logs are cleared"], correct: 2 }
+                ]
+            }
+        };
+
+        // State Management
+        let currentModuleId = null;
+        let quizIdx = 0, score = 0, totalAtt = 0;
+
+        // UI View Transitions
+        function showView(viewId) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId + '-view').classList.add('active');
+            
+            const nav = document.getElementById('module-nav');
+            if(viewId === 'dashboard') {
+                nav.classList.add('hidden');
+                currentModuleId = null;
+            } else {
+                nav.classList.remove('hidden');
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('bg-indigo-800', 'text-white'));
+            document.getElementById(tabId).classList.add('active');
+            const btn = document.querySelector(`[data-tab="${tabId}"]`);
+            if(btn) btn.classList.add('bg-indigo-800', 'text-white');
+            
+            if (tabId === 'quiz' && totalAtt === 0) resetQuiz();
+        }
+
+        // Module Initialization
+        function openModule(id) {
+            currentModuleId = id;
+            const module = modules.find(m => m.id == id);
+            document.getElementById('current-module-title').innerText = `AZ-104: ${module.name}`;
+            
+            loadModuleContent(id);
+            showView('module');
+            showTab('notes');
+        }
+
+        function loadModuleContent(id) {
+            const module = modules.find(m => m.id == id);
+            const data = contentData[id] || { 
+                notes: [{ title: "Under Development", items: ["Detailed study notes for this module are coming soon."] }],
+                flashcards: [{ q: "Module Ready?", a: "Stay tuned for specific flashcards for this topic." }],
+                quiz: Array(10).fill({ q: "Question Placeholder", options: ["Option A", "Option B", "Option C", "Option D"], correct: 0 })
+            };
+
+            // Notes
+            const notesContainer = document.getElementById('notes-container');
+            notesContainer.innerHTML = data.notes.map(note => `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h4 class="font-bold text-slate-800 mb-3">${note.title}</h4>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        ${note.items.map(i => `<li>• ${i}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+
+            // Mindmap (Base structure)
+            const mmContainer = document.getElementById('mindmap-container');
+            mmContainer.innerHTML = `
+                <svg viewBox="0 0 800 300" class="w-full h-auto">
+                    <line x1="400" y1="40" x2="400" y2="80" stroke="#6366f1" stroke-width="2" />
+                    <line x1="400" y1="120" x2="400" y2="160" stroke="#6366f1" stroke-width="2" />
+                    <line x1="400" y1="200" x2="400" y2="240" stroke="#6366f1" stroke-width="2" />
+                    <rect x="300" y="10" width="200" height="30" rx="5" fill="#4f46e5" />
+                    <text x="400" y="30" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Exam Domain</text>
+                    <rect x="300" y="80" width="200" height="40" rx="5" fill="#6366f1" />
+                    <text x="400" y="105" text-anchor="middle" fill="white" font-size="12">${module.name}</text>
+                    <rect x="300" y="160" width="200" height="40" rx="5" fill="#818cf8" />
+                    <text x="400" y="185" text-anchor="middle" fill="white" font-size="11">Core Principles</text>
+                    <rect x="300" y="240" width="200" height="40" rx="5" fill="#a5b4fc" />
+                    <text x="400" y="265" text-anchor="middle" fill="white" font-size="11">Implementations</text>
+                </svg>
+            `;
+
+            // Flashcards
+            const fcGrid = document.getElementById('flashcards-grid');
+            fcGrid.innerHTML = data.flashcards.map((c, i) => `
+                <div class="flashcard-container" id="fc-${i}" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front bg-indigo-600 text-white font-bold text-sm px-4">
+                            ${c.q}
+                        </div>
+                        <div class="flashcard-back bg-white border-2 border-indigo-600 text-indigo-900 text-xs font-medium px-4">
+                            ${c.a}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            resetQuiz();
+            lucide.createIcons();
+        }
+
+        function renderModules() {
+            const grid = document.getElementById('module-grid');
+            grid.innerHTML = modules.map(m => `
+                <div onclick="openModule('${m.id}')" class="module-card bg-white p-6 rounded-2xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-${m.color}-100 text-${m.color}-600">
+                        <i data-lucide="${m.icon}"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">AZ-104: ${m.name}</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">${m.desc}</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-indigo-600 gap-1 uppercase tracking-wide">
+                        Access Domain <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        let allFlipped = false;
+        function flipAllCards() {
+            allFlipped = !allFlipped;
+            document.querySelectorAll('.flashcard-container').forEach(c => allFlipped ? c.classList.add('flipped') : c.classList.remove('flipped'));
+        }
+
+        function startQuiz() {
+            document.getElementById('quiz-start').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            quizIdx = 0; score = 0; totalAtt = 0; updateDonut(); showQuestion();
+        }
+
+        function showQuestion() {
+            const data = contentData[currentModuleId] || contentData[3];
+            const curr = data.quiz[quizIdx];
+            document.getElementById('quiz-progress-text').innerText = `Question ${quizIdx + 1}/10`;
+            document.getElementById('quiz-question').innerText = curr.q;
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = '';
+            curr.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3 rounded-lg border border-slate-200 hover:bg-indigo-50 text-sm font-medium transition";
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(i);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function updateDonut() {
+            const outer = 314, inner = 239;
+            document.getElementById('ring-attempted').style.strokeDashoffset = outer - (totalAtt/10)*outer;
+            document.getElementById('ring-correct').style.strokeDashoffset = inner - (score/10)*inner;
+            document.getElementById('stat-attempted').innerText = totalAtt + "/10";
+            document.getElementById('stat-correct').innerText = score;
+            document.getElementById('accuracy-text').innerText = totalAtt ? Math.round((score/totalAtt)*100)+"%" : "0%";
+        }
+
+        function selectOption(i) {
+            const data = contentData[currentModuleId] || contentData[3];
+            totalAtt++;
+            if(i === data.quiz[quizIdx].correct) score++;
+            updateDonut();
+            quizIdx++;
+            if(quizIdx < 10) showQuestion();
+            else showQuizResult();
+        }
+
+        function showQuizResult() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            document.getElementById('quiz-score').innerText = score + "/10";
+        }
+
+        function resetQuiz() {
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-start').classList.remove('hidden');
+            quizIdx = 0; score = 0; totalAtt = 0;
+        }
+
+        window.onload = () => {
+            renderModules();
+        };
+    </script>
+</body>
+</html>
