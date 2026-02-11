@@ -44,6 +44,11 @@
         .donut-ring { transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
         
         .module-card:hover { transform: translateY(-4px); transition: all 0.2s ease; }
+
+        /* Quiz Feedback Styles */
+        .option-btn.correct { @apply border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200; }
+        .option-btn.incorrect { @apply border-red-500 bg-red-50 text-red-700 ring-2 ring-red-200; }
+        .option-btn.disabled { @apply opacity-60 cursor-not-allowed; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -121,12 +126,12 @@
                 <div id="quiz-start" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
                     <i data-lucide="zap" class="mx-auto w-12 h-12 text-yellow-500"></i>
                     <h2 class="text-xl font-bold">Module Knowledge Check</h2>
-                    <p class="text-slate-500 max-w-sm mx-auto">Practice your understanding of this module's core concepts.</p>
+                    <p class="text-slate-500 max-sm mx-auto">Practice your understanding of this module's core concepts.</p>
                     <button onclick="startQuiz()" class="px-8 py-3 rounded-xl bg-indigo-700 text-white font-bold">Start Practice Quiz</button>
                 </div>
 
                 <div id="quiz-container" class="hidden grid md:grid-cols-3 gap-6">
-                    <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+                    <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center h-fit">
                         <div class="relative w-32 h-32 mb-4">
                             <svg viewBox="0 0 120 120" class="w-full h-full">
                                 <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" stroke-width="8" />
@@ -137,20 +142,30 @@
                             <div class="absolute inset-0 flex items-center justify-center text-lg font-bold" id="accuracy-text">0%</div>
                         </div>
                         <div class="w-full text-sm space-y-1">
-                            <div class="flex justify-between"><span>Attempted:</span> <span id="stat-attempted" class="font-bold">0/10</span></div>
+                            <div class="flex justify-between"><span>Attempted:</span> <span id="stat-attempted" class="font-bold">0/0</span></div>
                             <div class="flex justify-between text-green-600"><span>Correct:</span> <span id="stat-correct" class="font-bold">0</span></div>
                         </div>
                     </div>
                     <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="text-indigo-600 font-bold mb-2 text-sm" id="quiz-progress-text">Question 1/10</div>
+                        <div class="text-indigo-600 font-bold mb-2 text-sm" id="quiz-progress-text">Question 1/0</div>
                         <h3 class="text-lg font-bold mb-6" id="quiz-question">Loading...</h3>
                         <div class="grid gap-2" id="quiz-options"></div>
+                        
+                        <!-- Feedback Area -->
+                        <div id="quiz-feedback" class="hidden mt-6 p-4 rounded-xl border animate-in fade-in duration-300">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i id="feedback-icon" class="w-5 h-5"></i>
+                                <span id="feedback-title" class="font-bold">Explanation</span>
+                            </div>
+                            <p id="feedback-text" class="text-sm text-slate-600 leading-relaxed"></p>
+                            <button onclick="nextQuestion()" class="mt-4 w-full py-2 bg-indigo-700 text-white rounded-lg font-bold hover:bg-indigo-800 transition">Next Question</button>
+                        </div>
                     </div>
                 </div>
 
                 <div id="quiz-result" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
                     <h2 class="text-2xl font-bold">Module Result</h2>
-                    <div class="text-5xl font-bold text-indigo-700" id="quiz-score">0/10</div>
+                    <div class="text-5xl font-bold text-indigo-700" id="quiz-score">0/0</div>
                     <button onclick="resetQuiz()" class="px-6 py-2 rounded-lg bg-indigo-700 text-white font-bold">Restart Test</button>
                 </div>
             </div>
@@ -163,103 +178,123 @@
     </footer>
 
     <script>
-        // Module Data Structure
         const modules = [
-            { 
-                id: 1, 
-                name: "Prerequisites for Azure administrators", 
-                desc: "Initial tools: Azure portal, Cloud Shell, Azure PowerShell, CLI, and ARM templates.", 
-                icon: "wrench", color: "blue" 
-            },
-            { 
-                id: 2, 
-                name: "Manage identities", 
-                desc: "Microsoft Entra users and groups, managing external users, and configuring SSPR.", 
-                icon: "users", color: "indigo" 
-            },
-            { 
-                id: 3, 
-                name: "Governance in Azure", 
-                desc: "implementing Azure roles, applying Azure policy, and governance controls.", 
-                icon: "shield-check", color: "purple" 
-            },
-            { 
-                id: 4, 
-                name: "Implement and manage storage", 
-                desc: "Access keys, SAS tokens, Azure files, and blob storage implementation.", 
-                icon: "database", color: "cyan" 
-            },
-            { 
-                id: 5, 
-                name: "Deploy and manage compute resources", 
-                desc: "Virtual Machines, automated deployment, containers, and web apps.", 
-                icon: "cpu", color: "orange" 
-            },
-            { 
-                id: 6, 
-                name: "Configure and manage virtual networks", 
-                desc: "VNETs, securing access with NSGs, load balancing, and hybrid connectivity.", 
-                icon: "share-2", color: "emerald" 
-            },
-            { 
-                id: 7, 
-                name: "Monitor and back up resources", 
-                desc: "Azure Monitor, Log Analytics, alerts, and backup solutions.", 
-                icon: "activity", color: "rose" 
-            }
+            { id: 1, name: "Prerequisites for Azure administrators", desc: "Initial tools: Azure portal, Cloud Shell, Azure PowerShell, CLI, and ARM templates.", icon: "wrench", color: "blue" },
+            { id: 2, name: "Manage identities", desc: "Microsoft Entra users and groups, managing external users, and configuring SSPR.", icon: "users", color: "indigo" },
+            { id: 3, name: "Governance in Azure", desc: "implementing Azure roles, applying Azure policy, and governance controls.", icon: "shield-check", color: "purple" },
+            { id: 4, name: "Implement and manage storage", desc: "Access keys, SAS tokens, Azure files, and blob storage implementation.", icon: "database", color: "cyan" },
+            { id: 5, name: "Deploy and manage compute resources", desc: "Virtual Machines, automated deployment, containers, and web apps.", icon: "cpu", color: "orange" },
+            { id: 6, name: "Configure and manage virtual networks", desc: "VNETs, securing access with NSGs, load balancing, and hybrid connectivity.", icon: "share-2", color: "emerald" },
+            { id: 7, name: "Monitor and back up resources", desc: "Azure Monitor, Log Analytics, alerts, and backup solutions.", icon: "activity", color: "rose" }
         ];
 
-        // Specific Module Content
         const contentData = {
             3: {
                 notes: [
                     { title: "Physical Infrastructure", items: ["Datacenters: Buildings with servers.", "Regions: Latency-connected datacenters.", "Availability Zones: Physically separate datacenters (independent power/cooling).", "Region Pairs: 300+ miles apart for DR."] },
                     { title: "Governance Hierarchy", items: ["Management Groups: Rooted tree (up to 6 deep) for policy aggregation.", "Subscriptions: Unit of billing.", "Resource Groups: Share deployment lifecycle.", "Resources: Service instances."] },
                     { title: "RBAC & ABAC", items: ["RBAC: Principal + Role + Scope.", "Role ID: GUID (persistent unique ID).", "ABAC: Adds Conditions (e.g., tags) to role assignments.", "Supported for: Blob and Queue data actions."] },
-                    { title: "Azure Policy", items: ["Definitions: JSON rules.", "Initiatives: Collections of policies.", "Evaluation: Happens at creation, update, and during compliance scans.", "Remediation: Fixes existing resources."] },
-                    { title: "Best Practices", items: ["Maximum 3 subscription owners recommended.", "Assign roles to Groups, not individual users.", "Use PIM (Privileged Identity Management) for JIT access.", "Activity Log: Stores RBAC changes for 90 days."] }
+                    { title: "Azure Policy", items: ["Definitions: JSON rules.", "Initiatives: Collections of policies.", "Evaluation: Happens at creation, update, and during compliance scans.", "Remediation: Fixes existing resources."] }
                 ],
                 flashcards: [
                     { q: "Availability Zone", a: "Physically separate datacenters within a region with independent power/cooling." },
                     { q: "Management Group", a: "Container used to apply policies and RBAC for multiple subscriptions at scale." },
                     { q: "Region Pair", a: "Two regions within a geography at least 300 miles apart for regional DR." },
                     { q: "Azure ABAC", a: "Attribute-Based Access Control filtering permissions based on resource tags/conditions." },
-                    { q: "Least Privilege", a: "Granting only the specific access required for a task at the narrowest scope." },
-                    { q: "Activity Log Retention", a: "RBAC changes are stored for 90 days in the Azure Activity Log." },
-                    { q: "PIM", a: "Microsoft Entra Privileged Identity Management for Just-in-Time access." },
-                    { q: "Subscription Limit", a: "Current limit of 4,000 role assignments per subscription." }
+                    { q: "Least Privilege", a: "Granting only the specific access required for a task at the narrowest scope." }
                 ],
                 quiz: [
-                    { q: "Which component protects against a datacenter failure?", options: ["Regions", "Availability Zones", "Subscriptions", "Resource Groups"], correct: 1 },
-                    { q: "What is the maximum depth of a Management Group tree?", options: ["3 levels", "6 levels", "10 levels", "Unlimited"], correct: 1 },
-                    { q: "Why should you use Group assignments for RBAC?", options: ["It's faster to deploy", "It bypasses subscription limits", "Improves manageability and reduces individual role assignment limits", "It's required by Azure Policy"], correct: 2 },
-                    { q: "What tool allows for Just-In-Time access to privileged roles?", options: ["Azure Policy", "Activity Log", "Microsoft Entra PIM", "Resource Tags"], correct: 2 },
-                    { q: "Which role can assign roles in Azure RBAC?", options: ["Contributor", "Reader", "Owner", "Billing Reader"], correct: 2 },
-                    { q: "What is the primary benefit of Region Pairs?", options: ["Cheaper storage", "Regional disaster recovery with data residency", "Faster deployment", "Lower latency"], correct: 1 },
-                    { q: "Azure ABAC is primarily used to...", options: ["Create billing reports", "Apply fine-grained conditions to role assignments", "Manage Azure regions", "Enforce compliance scans"], correct: 1 },
-                    { q: "Where does inheritance flow in the Azure hierarchy?", options: ["Bottom up", "Horizontally", "Management Group down to Resources", "Subscription to Tenant"], correct: 2 },
-                    { q: "How long are RBAC changes stored in the Activity Log?", options: ["30 days", "90 days", "1 year", "Indefinitely"], correct: 1 },
-                    { q: "What happens during an Azure Policy remediation task?", options: ["The policy is deleted", "The subscription is disabled", "Non-compliant resources are automatically updated", "Audit logs are cleared"], correct: 2 }
+                    { q: "Which component protects against a datacenter failure?", options: ["Regions", "Availability Zones", "Subscriptions", "Resource Groups"], correct: 1, explanation: "Availability Zones are physically separate locations within an Azure region, each with its own power, cooling, and networking." },
+                    { q: "What is the maximum depth of a Management Group tree?", options: ["3 levels", "6 levels", "10 levels", "Unlimited"], correct: 1, explanation: "Azure Management Groups support a hierarchy up to 6 levels deep (not including the Root or Subscription levels)." },
+                    { q: "Why should you use Group assignments for RBAC?", options: ["It's faster to deploy", "It bypasses subscription limits", "Improves manageability and reduces individual role assignment limits", "It's required by Azure Policy"], correct: 2, explanation: "Assigning roles to groups makes maintenance easier and helps avoid hitting the 4,000 role assignment limit per subscription." }
+                ]
+            },
+            4: {
+                notes: [
+                    { title: "Storage Types", items: ["Blob Storage: Unstructured objects.", "Azure Files: Managed file shares (SMB/NFS).", "Queue Storage: Messaging for workflow processing.", "Table Storage: NoSQL key-attribute store."] },
+                    { title: "Redundancy Options", items: ["LRS: 3 copies in 1 DC.", "ZRS: 3 copies in 3 Zones.", "GRS: Cross-region replication (Async).", "GZRS: Zone-redundant + Geo-redundant."] },
+                    { title: "Blob Access Tiers", items: ["Hot: Frequently accessed data.", "Cool: Infrequent access (min 30 days).", "Cold: Rarely accessed (min 90 days).", "Archive: Long-term storage (offline, min 180 days)."] }
+                ],
+                flashcards: [
+                    { q: "LRS", a: "Locally Redundant Storage replicates data 3 times within a single datacenter." },
+                    { q: "ZRS", a: "Zone Redundant Storage replicates data synchronously across 3 Availability Zones." },
+                    { q: "Cool Tier", a: "Intended for data accessed less frequently and stored for at least 30 days." },
+                    { q: "SAS", a: "Shared Access Signature provides granular temporary access to storage resources." }
+                ],
+                quiz: [
+                    { q: "What is the minimum number of copies maintained in a single datacenter with Locally Redundant Storage (LRS)?", options: ["1", "2", "3", "6"], correct: 2, explanation: "LRS replicates your data three times within a single data center in the primary region." },
+                    { q: "Which storage redundancy option provides replication across multiple datacenters within a single region?", options: ["LRS", "GRS", "ZRS", "GZRS"], correct: 2, explanation: "Zone-Redundant Storage (ZRS) replicates your data synchronously across three Azure availability zones in the primary region." },
+                    { q: "You need to move blobs that haven't been accessed for 30 days to a cheaper storage tier. Which feature should you use?", options: ["Storage Explorer", "AzCopy", "Lifecycle Management", "Access Keys"], correct: 2, explanation: "Lifecycle management allows you to define rules to automatically transition blobs to cooler tiers or delete them based on age or last access." },
+                    { q: "Which blob access tier is intended for data that is rarely accessed and requires at least 180 days of storage?", options: ["Hot", "Cool", "Cold", "Archive"], correct: 3, explanation: "The Archive tier is the most cost-effective for long-term storage but has the highest access costs and requires rehydration before access." },
+                    { q: "Which type of blob is optimized for random read and write operations, often used as VHDs for virtual machines?", options: ["Block Blobs", "Append Blobs", "Page Blobs", "Container Blobs"], correct: 2, explanation: "Page blobs are optimized for random read and write operations, which is the standard for virtual machine disks." },
+                    { q: "What is the primary advantage of Read-Access Geo-Redundant Storage (RA-GRS) over standard GRS?", options: ["Lower storage costs", "Higher write performance", "Read access to the secondary region", "Automatic failover"], correct: 2, explanation: "RA-GRS provides a separate read-only endpoint for the secondary region, allowing high availability for read operations during a regional outage." },
+                    { q: "How many storage account keys are provided by default for an Azure Storage account?", options: ["1", "2", "4", "10"], correct: 1, explanation: "Azure provides two access keys (primary and secondary) to allow for key rotation without downtime." },
+                    { q: "Which feature must be enabled to support Data Lake Storage Gen2 capabilities on a standard storage account?", options: ["Soft Delete", "Hierarchical Namespace", "Object Replication", "Versioning"], correct: 1, explanation: "The Hierarchical Namespace is the core feature of Data Lake Storage Gen2 that allows for directory-level operations and improved performance." },
+                    { q: "What is the rehydration process in Azure Storage?", options: ["Syncing data to secondary region", "Moving data from Archive to Hot or Cool tier", "Converting Block to Page blobs", "Restoring a deleted container"], correct: 1, explanation: "Rehydration is the process of moving an offline blob from the Archive tier back to an online tier (Hot or Cool)." },
+                    { q: "Which storage protocol is primarily used by Azure Files for mounting shares on Windows and Linux?", options: ["HTTP/HTTPS", "NFS only", "SMB and NFS", "FTP"], correct: 2, explanation: "Azure Files supports industry-standard SMB for Windows/Linux and NFS specifically for Linux workloads." },
+                    { q: "Which feature allows you to restore a storage account or specific blobs to a previous state within a retention period?", options: ["Object Replication", "Soft Delete", "Lifecycle Management", "Access Tiers"], correct: 1, explanation: "Soft delete allows you to recover data that was accidentally deleted or overwritten for a specified retention period." },
+                    { q: "What is the minimum duration a blob must stay in the Cool tier to avoid an early deletion fee?", options: ["7 days", "14 days", "30 days", "180 days"], correct: 2, explanation: "The Cool tier is intended for data stored for at least 30 days. Deleting it earlier results in a pro-rated charge." },
+                    { q: "Which tool should be used for high-performance command-line data transfer to and from Azure Storage?", options: ["Storage Explorer", "Azure Portal", "AzCopy", "Cloud Shell"], correct: 2, explanation: "AzCopy is the recommended command-line utility for high-performance copying of data to and from Azure storage." },
+                    { q: "Which replication option replicates data synchronously three times in the primary region and then asynchronously to a single datacenter in the secondary region?", options: ["GRS", "GZRS", "LRS", "ZRS"], correct: 0, explanation: "Geo-Redundant Storage (GRS) handles 3 copies in the primary region (LRS-style) and asynchronously copies to the secondary region." },
+                    { q: "You need to implement 'Write Once, Read Many' (WORM) storage for compliance. Which feature should you use?", options: ["Immutable Storage", "Archive Tier", "Page Blobs", "SAS Tokens"], correct: 0, explanation: "Immutable storage for Azure Blob Storage allows storing business-critical data in a WORM state where it cannot be modified or deleted." },
+                    { q: "When configuring Azure Storage Firewalls, what is the default behavior when you switch from 'All networks' to 'Selected networks'?", options: ["All traffic is allowed until a rule is created", "All traffic is denied unless explicitly permitted by IP or VNET", "Only Azure portal traffic is allowed", "Only traffic from the same region is allowed"], correct: 1, explanation: "When you restrict access to 'Selected networks', any traffic that does not originate from an approved IP range or Virtual Network is denied by default." },
+                    { q: "Which feature provides a private IP address from your Virtual Network to access your Azure Storage account over the Microsoft backbone network?", options: ["Service Endpoints", "Private Endpoints", "VPN Gateway", "ExpressRoute"], correct: 1, explanation: "Private Endpoints use a private IP address from your VNET, effectively bringing the storage service into your network and eliminating public internet exposure." },
+                    { q: "Azure Storage encryption at rest (SSE) is enabled by default for all storage accounts. Who manages the encryption keys by default?", options: ["The user", "Microsoft", "A third-party CA", "The hardware manufacturer"], correct: 1, explanation: "By default, Microsoft-managed keys are used for Storage Service Encryption (SSE). However, you can opt to use your own Customer-Managed Keys (CMK) via Azure Key Vault." },
+                    { q: "When following best practices for Shared Access Signatures (SAS), which protocol should be strictly enforced?", options: ["HTTP only", "HTTPS only", "FTP", "SMB 1.0"], correct: 1, explanation: "To ensure the security of the signature during transmission, you should always require HTTPS only and avoid transmitting SAS tokens over unencrypted channels." },
+                    { q: "What is the security risk of sharing the primary storage account access key with an application?", options: ["The key might expire", "The application gets full administrative control over the storage account", "The application can only read data", "It disables logging"], correct: 1, explanation: "Storage access keys provide 'root' level access to the account. If a key is compromised, the attacker has full control. It is better to use SAS tokens or Entra ID authentication for applications." },
+                    { q: "Which service allows you to cache Azure File shares on an on-premises Windows Server for faster local access?", options: ["Azure Import/Export", "Azure File Sync", "Storage Explorer", "Data Box"], correct: 1, explanation: "Azure File Sync centralizes your organization's file shares in Azure Files, while keeping the flexibility, performance, and compatibility of an on-premises file server." },
+                    { q: "Which protocol is used by Azure Files to support Linux-specific workloads that require POSIX-compliant file systems?", options: ["SMB 3.0", "NFS 4.1", "FTP", "iSCSI"], correct: 1, explanation: "Azure Files supports both SMB and NFS protocols. NFS 4.1 is specifically used for Linux workloads requiring high performance and POSIX compliance." },
+                    { q: "When using Azure File Sync, what is the purpose of the 'Cloud Tiering' feature?", options: ["Encrypting files in the cloud", "Archiving old files to Glacier", "Keeping frequently accessed files local while moving infrequent ones to Azure", "Synchronizing files between two regions"], correct: 2, explanation: "Cloud tiering is an optional feature of Azure File Sync where frequently accessed files are cached locally on the server and infrequently accessed files are tiered to Azure Files to save local space." },
+                    { q: "Which storage account type is specifically required to use 'Premium' performance tier for Azure File shares?", options: ["General Purpose v1", "General Purpose v2", "FileStorage", "BlobStorage"], correct: 2, explanation: "Premium file shares are hosted on the 'FileStorage' account type, which uses SSD-based hardware for high-performance and low-latency workloads." },
+                    { q: "You need to migrate an on-premises file share to Azure Files while preserving NTFS permissions. Which authentication method supports this requirement?", options: ["Storage Access Keys", "Shared Access Signatures", "Microsoft Entra Domain Services (or AD DS)", "Anonymous Public Access"], correct: 2, explanation: "Azure Files supports identity-based authentication (AD DS or Microsoft Entra Domain Services) to allow users to access shares using their existing credentials and preserve NTFS ACLs." }
+                ]
+            },
+            5: {
+                notes: [
+                    { title: "Azure VM Availability", items: ["Availability Sets: Protects against hardware failure (Fault Domains) and maintenance (Update Domains).", "Availability Zones: Protects against entire datacenter failure within a region.", "SLA: 99.99% for VMs in 2+ Zones; 99.95% for VMs in AV Sets."] },
+                    { title: "VM Scaling", items: ["Vertical Scaling: Resizing an existing VM (Requires downtime).", "Horizontal Scaling: Adding more instances (Scale Sets).", "VMSS (Scale Sets): Automate scaling based on CPU, Memory, or schedule."] },
+                    { title: "Compute Pricing", items: ["Pay-as-you-go: Highest flexibility, highest cost.", "Reserved Instances: 1 or 3-year commitment, up to 72% savings.", "Spot VMs: Use idle capacity at deep discounts, can be evicted anytime."] }
+                ],
+                flashcards: [
+                    { q: "Fault Domain", a: "Group of VMs sharing common power and network switch in an Availability Set." },
+                    { q: "Update Domain", a: "Group of VMs rebooted together during planned maintenance." },
+                    { q: "Vertical Scaling", a: "Resizing a VM to a different instance size (e.g. D2 to D4)." },
+                    { q: "Spot VM", a: "Unused Azure capacity available at high discount but with no availability guarantee." }
+                ],
+                quiz: [
+                    { q: "You need to ensure that virtual machines in a set are not all rebooted at the same time during planned Azure maintenance. What should you configure?", options: ["Fault Domains", "Update Domains", "Availability Zones", "Scale Sets"], correct: 1, explanation: "Update domains are used to ensure that only a portion of your VMs are rebooted at any given time during a planned maintenance event." },
+                    { q: "Which feature provides protection against a localized hardware failure (such as a power supply or network switch) within a single datacenter?", options: ["Fault Domains", "Update Domains", "Regional Pairs", "Vertical Scaling"], correct: 0, explanation: "Fault domains group VMs that share a common power source and network switch, ensuring that a single failure doesn't take out all instances." },
+                    { q: "What is the maximum number of Fault Domains you can typically configure in an Azure Availability Set?", options: ["2", "3", "5", "20"], correct: 1, explanation: "In most regions, you can configure up to 3 Fault Domains in an Availability Set." },
+                    { q: "You need to achieve a 99.99% availability SLA for your virtual machines. How should you deploy them?", options: ["Single instance with Premium SSD", "Two or more instances in an Availability Set", "Two or more instances across different Availability Zones", "Two or more instances in different Regions"], correct: 2, explanation: "Microsoft provides a 99.99% SLA for VMs that have two or more instances deployed across two or more Availability Zones in the same region." },
+                    { q: "Which compute sizing strategy involves changing the size of a single virtual machine to provide more CPU and RAM?", options: ["Horizontal Scaling", "Vertical Scaling", "Load Balancing", "Autoscaling"], correct: 1, explanation: "Vertical scaling (Scaling Up) involves moving the VM to a larger size, which typically requires a reboot." },
+                    { q: "What is the primary benefit of using Virtual Machine Scale Sets (VMSS)?", options: ["Highest single-instance SLA", "Automatic horizontal scaling based on demand", "Manual resizing of disks", "Shared storage between instances"], correct: 1, explanation: "VMSS allows you to deploy and manage a group of identical, load-balanced VMs that can automatically scale in or out based on defined metrics." },
+                    { q: "A company wants to run a non-critical background task that can be interrupted at any time. Which VM type offers the lowest cost for this scenario?", options: ["Reserved Instances", "Spot VMs", "Pay-as-you-go", "B-series Burstable"], correct: 1, explanation: "Spot VMs allow you to take advantage of unused Azure capacity at a significant discount, but they can be evicted at any time if Azure needs the capacity back." },
+                    { q: "Which Azure disk type is the best choice for sub-millisecond latency and high-performance database workloads?", options: ["Standard HDD", "Standard SSD", "Premium SSD", "Ultra Disk"], correct: 3, explanation: "Ultra Disks provide the highest performance (up to 160k IOPS) and sub-millisecond latency for data-intensive workloads." },
+                    { q: "When using Azure Bastion to connect to a VM, which port is typically opened on the VM's Network Security Group (NSG)?", options: ["TCP 3389", "TCP 22", "TCP 443", "No public ports are needed"], correct: 3, explanation: "Azure Bastion allows secure RDP/SSH access without needing to expose public IP addresses or open inbound RDP/SSH ports on the VM's NSG." },
+                    { q: "You deploy a VMSS with 5 instances. You want to ensure that instances are updated one by one during a scale-set update. Which upgrade policy should you use?", options: ["Manual", "Automatic", "Rolling", "Scheduled"], correct: 2, explanation: "The Rolling upgrade policy updates the instances in batches, ensuring a certain percentage of instances remain available throughout the process." },
+                    { q: "Which VM series is specifically designed for 'burstable' workloads that don't need full CPU performance all the time?", options: ["D-Series", "F-Series", "B-Series", "M-Series"], correct: 2, explanation: "The B-Series (Burstable) is cost-effective for workloads that typically run at a low baseline CPU performance but occasionally need to burst higher." },
+                    { q: "Which feature allows you to run your VMs on physical servers dedicated to your organization for compliance or isolation?", options: ["Azure Bastion", "Azure Dedicated Host", "Proximity Placement Groups", "Availability Zones"], correct: 1, explanation: "Azure Dedicated Host provides a physical server that is dedicated to one Azure subscription, providing hardware isolation at the physical server level." },
+                    { q: "What happens to data stored on the temporary 'D:' drive of an Azure VM when the VM is stopped and deallocated?", options: ["Data is persisted", "Data is lost", "Data is moved to a Snapshot", "Data is encrypted"], correct: 1, explanation: "The temporary drive (typically D: on Windows) is hosted on the physical host's local storage. If the VM is deallocated, it may move to a new host, and the data on the temporary disk is lost." },
+                    { q: "Which tool allows you to automate post-deployment tasks like installing software or running scripts inside a VM?", options: ["Resource Groups", "VM Extensions", "NSGs", "Azure Policy"], correct: 1, explanation: "VM Extensions (like the Custom Script Extension) are small applications that provide post-deployment configuration and automation tasks on Azure VMs." },
+                    { q: "A Proximity Placement Group is used to achieve which goal?", options: ["High Availability", "Disaster Recovery", "Lowest possible network latency between VMs", "Compliance with data residency"], correct: 2, explanation: "A Proximity Placement Group is a logical grouping used to ensure that Azure compute resources are physically located close to each other, reducing network latency." },
+                    { q: "When resizing a VM, what is the most common reason for receiving an 'Allocation Failed' error?", options: ["Wrong subscription", "No disk space", "The current hardware cluster doesn't support the new size", "Billing limit reached"], correct: 2, explanation: " Resizing usually requires the VM to be moved to a different cluster. If the new size isn't available in the current cluster, you must deallocate the VM first to allow it to be placed on a compatible cluster." },
+                    { q: "What is the maximum number of Update Domains in an Availability Set?", options: ["3", "5", "10", "20"], correct: 3, explanation: "You can configure up to 20 Update Domains in an Availability Set." },
+                    { q: "You need to capture a template of a configured VM to deploy multiple identical copies. What must you do first inside the VM?", options: ["Install Azure CLI", "Run Sysprep (Windows) or waagent -deprovision (Linux)", "Create a Snapshot", "Resize the VM"], correct: 1, explanation: "To create a generalized image, you must generalize the OS first to remove instance-specific information like computer names and user accounts." },
+                    { q: "Which encryption method is used to encrypt the OS and Data disks of a VM using BitLocker (Windows) or DM-Crypt (Linux)?", options: ["SSE", "Azure Disk Encryption (ADE)", "VPN", "HTTPS"], correct: 1, explanation: "Azure Disk Encryption (ADE) uses the platform's native encryption tools (BitLocker/DM-Crypt) and integrates with Azure Key Vault to manage disk encryption keys." },
+                    { q: "Which VM state indicates that the VM is not using any compute resources and you are no longer being charged for compute costs?", options: ["Stopped", "Suspended", "Stopped (Deallocated)", "Shutting Down"], correct: 2, explanation: "Only 'Stopped (Deallocated)' indicates the VM is released from its physical host, stopping compute billing (though storage costs for disks still apply)." }
                 ]
             }
         };
 
-        // State Management
         let currentModuleId = null;
-        let quizIdx = 0, score = 0, totalAtt = 0;
+        let quizIdx = 0, score = 0, totalAtt = 0, isAnswering = false;
 
-        // UI View Transitions
         function showView(viewId) {
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.getElementById(viewId + '-view').classList.add('active');
-            
             const nav = document.getElementById('module-nav');
-            if(viewId === 'dashboard') {
-                nav.classList.add('hidden');
-                currentModuleId = null;
-            } else {
-                nav.classList.remove('hidden');
-            }
+            if(viewId === 'dashboard') { nav.classList.add('hidden'); currentModuleId = null; }
+            else nav.classList.remove('hidden');
             window.scrollTo(0, 0);
         }
 
@@ -269,16 +304,13 @@
             document.getElementById(tabId).classList.add('active');
             const btn = document.querySelector(`[data-tab="${tabId}"]`);
             if(btn) btn.classList.add('bg-indigo-800', 'text-white');
-            
             if (tabId === 'quiz' && totalAtt === 0) resetQuiz();
         }
 
-        // Module Initialization
         function openModule(id) {
             currentModuleId = id;
             const module = modules.find(m => m.id == id);
             document.getElementById('current-module-title').innerText = `AZ-104: ${module.name}`;
-            
             loadModuleContent(id);
             showView('module');
             showTab('notes');
@@ -287,51 +319,36 @@
         function loadModuleContent(id) {
             const module = modules.find(m => m.id == id);
             const data = contentData[id] || { 
-                notes: [{ title: "Under Development", items: ["Detailed study notes for this module are coming soon."] }],
-                flashcards: [{ q: "Module Ready?", a: "Stay tuned for specific flashcards for this topic." }],
-                quiz: Array(10).fill({ q: "Question Placeholder", options: ["Option A", "Option B", "Option C", "Option D"], correct: 0 })
+                notes: [{ title: "Under Development", items: ["Study material coming soon."] }],
+                flashcards: [{ q: "Ready?", a: "Stay tuned." }],
+                quiz: Array(10).fill({ q: "Question Placeholder", options: ["A", "B", "C", "D"], correct: 0, explanation: "No explanation." })
             };
 
-            // Notes
-            const notesContainer = document.getElementById('notes-container');
-            notesContainer.innerHTML = data.notes.map(note => `
+            document.getElementById('notes-container').innerHTML = data.notes.map(note => `
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h4 class="font-bold text-slate-800 mb-3">${note.title}</h4>
-                    <ul class="space-y-2 text-sm text-slate-600">
-                        ${note.items.map(i => `<li>• ${i}</li>`).join('')}
-                    </ul>
+                    <ul class="space-y-2 text-sm text-slate-600">${note.items.map(i => `<li>• ${i}</li>`).join('')}</ul>
                 </div>
             `).join('');
 
-            // Mindmap (Base structure)
-            const mmContainer = document.getElementById('mindmap-container');
-            mmContainer.innerHTML = `
-                <svg viewBox="0 0 800 300" class="w-full h-auto">
-                    <line x1="400" y1="40" x2="400" y2="80" stroke="#6366f1" stroke-width="2" />
-                    <line x1="400" y1="120" x2="400" y2="160" stroke="#6366f1" stroke-width="2" />
-                    <line x1="400" y1="200" x2="400" y2="240" stroke="#6366f1" stroke-width="2" />
+            document.getElementById('mindmap-container').innerHTML = `
+                <svg viewBox="0 0 800 240" class="w-full h-auto">
                     <rect x="300" y="10" width="200" height="30" rx="5" fill="#4f46e5" />
                     <text x="400" y="30" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Exam Domain</text>
-                    <rect x="300" y="80" width="200" height="40" rx="5" fill="#6366f1" />
+                    <line x1="400" y1="40" x2="400" y2="80" stroke="#6366f1" stroke-width="2" />
+                    <rect x="250" y="80" width="300" height="40" rx="5" fill="#6366f1" />
                     <text x="400" y="105" text-anchor="middle" fill="white" font-size="12">${module.name}</text>
+                    <line x1="400" y1="120" x2="400" y2="160" stroke="#6366f1" stroke-width="2" />
                     <rect x="300" y="160" width="200" height="40" rx="5" fill="#818cf8" />
-                    <text x="400" y="185" text-anchor="middle" fill="white" font-size="11">Core Principles</text>
-                    <rect x="300" y="240" width="200" height="40" rx="5" fill="#a5b4fc" />
-                    <text x="400" y="265" text-anchor="middle" fill="white" font-size="11">Implementations</text>
+                    <text x="400" y="185" text-anchor="middle" fill="white" font-size="11">Active Study Topic</text>
                 </svg>
             `;
 
-            // Flashcards
-            const fcGrid = document.getElementById('flashcards-grid');
-            fcGrid.innerHTML = data.flashcards.map((c, i) => `
+            document.getElementById('flashcards-grid').innerHTML = data.flashcards.map((c, i) => `
                 <div class="flashcard-container" id="fc-${i}" onclick="this.classList.toggle('flipped')">
                     <div class="flashcard-inner">
-                        <div class="flashcard-front bg-indigo-600 text-white font-bold text-sm px-4">
-                            ${c.q}
-                        </div>
-                        <div class="flashcard-back bg-white border-2 border-indigo-600 text-indigo-900 text-xs font-medium px-4">
-                            ${c.a}
-                        </div>
+                        <div class="flashcard-front bg-indigo-600 text-white font-bold text-sm px-4">${c.q}</div>
+                        <div class="flashcard-back bg-white border-2 border-indigo-600 text-indigo-900 text-xs font-medium px-4">${c.a}</div>
                     </div>
                 </div>
             `).join('');
@@ -341,85 +358,137 @@
         }
 
         function renderModules() {
-            const grid = document.getElementById('module-grid');
-            grid.innerHTML = modules.map(m => `
+            document.getElementById('module-grid').innerHTML = modules.map(m => `
                 <div onclick="openModule('${m.id}')" class="module-card bg-white p-6 rounded-2xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-${m.color}-100 text-${m.color}-600">
-                        <i data-lucide="${m.icon}"></i>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-${m.color}-100 text-${m.color}-600"><i data-lucide="${m.icon}"></i></div>
                     <h3 class="font-bold text-lg mb-2">AZ-104: ${m.name}</h3>
                     <p class="text-slate-500 text-sm leading-relaxed">${m.desc}</p>
-                    <div class="mt-4 flex items-center text-xs font-bold text-indigo-600 gap-1 uppercase tracking-wide">
-                        Access Domain <i data-lucide="chevron-right" class="w-3 h-3"></i>
-                    </div>
+                    <div class="mt-4 flex items-center text-xs font-bold text-indigo-600 gap-1 uppercase tracking-wide">Access Domain <i data-lucide="chevron-right" class="w-3 h-3"></i></div>
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        let allFlipped = false;
         function flipAllCards() {
-            allFlipped = !allFlipped;
-            document.querySelectorAll('.flashcard-container').forEach(c => allFlipped ? c.classList.add('flipped') : c.classList.remove('flipped'));
+            const cards = document.querySelectorAll('.flashcard-container');
+            const isAnyNotFlipped = Array.from(cards).some(c => !c.classList.contains('flipped'));
+            cards.forEach(c => isAnyNotFlipped ? c.classList.add('flipped') : c.classList.remove('flipped'));
         }
 
+        // Quiz Logic
         function startQuiz() {
             document.getElementById('quiz-start').classList.add('hidden');
             document.getElementById('quiz-container').classList.remove('hidden');
-            quizIdx = 0; score = 0; totalAtt = 0; updateDonut(); showQuestion();
+            quizIdx = 0; score = 0; totalAtt = 0;
+            updateDonut();
+            showQuestion();
         }
 
         function showQuestion() {
+            isAnswering = true;
             const data = contentData[currentModuleId] || contentData[3];
             const curr = data.quiz[quizIdx];
-            document.getElementById('quiz-progress-text').innerText = `Question ${quizIdx + 1}/10`;
+            document.getElementById('quiz-progress-text').innerText = `Question ${quizIdx + 1}/${data.quiz.length}`;
             document.getElementById('quiz-question').innerText = curr.q;
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            
             const optionsDiv = document.getElementById('quiz-options');
             optionsDiv.innerHTML = '';
             curr.options.forEach((opt, i) => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left p-3 rounded-lg border border-slate-200 hover:bg-indigo-50 text-sm font-medium transition";
-                btn.innerText = opt;
-                btn.onclick = () => selectOption(i);
+                btn.className = "option-btn w-full text-left p-3 rounded-lg border border-slate-200 hover:bg-indigo-50 text-sm font-medium transition flex justify-between items-center";
+                btn.innerHTML = `<span>${opt}</span><i class="hidden w-4 h-4"></i>`;
+                btn.onclick = () => selectOption(i, btn);
                 optionsDiv.appendChild(btn);
             });
         }
 
+        function selectOption(i, btn) {
+            if (!isAnswering) return;
+            isAnswering = false;
+            
+            const data = contentData[currentModuleId] || contentData[3];
+            const curr = data.quiz[quizIdx];
+            const isCorrect = i === curr.correct;
+            
+            totalAtt++;
+            if(isCorrect) score++;
+
+            // Visual feedback on buttons
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach((b, idx) => {
+                b.classList.add('disabled');
+                if (idx === curr.correct) {
+                    b.classList.add('correct');
+                    b.querySelector('i').classList.remove('hidden');
+                    b.querySelector('i').setAttribute('data-lucide', 'check');
+                } else if (idx === i && !isCorrect) {
+                    b.classList.add('incorrect');
+                    b.querySelector('i').classList.remove('hidden');
+                    b.querySelector('i').setAttribute('data-lucide', 'x');
+                }
+            });
+
+            // Explanation Area
+            const feedback = document.getElementById('quiz-feedback');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+
+            feedback.classList.remove('hidden');
+            if (isCorrect) {
+                feedback.className = "mt-6 p-4 rounded-xl border border-green-200 bg-green-50 animate-in slide-in-from-bottom-2 duration-300";
+                feedbackIcon.className = "w-5 h-5 text-green-600";
+                feedbackIcon.setAttribute('data-lucide', 'check-circle');
+                feedbackTitle.innerText = "Correct!";
+                feedbackTitle.className = "font-bold text-green-800";
+            } else {
+                feedback.className = "mt-6 p-4 rounded-xl border border-red-200 bg-red-50 animate-in slide-in-from-bottom-2 duration-300";
+                feedbackIcon.className = "w-5 h-5 text-red-600";
+                feedbackIcon.setAttribute('data-lucide', 'help-circle');
+                feedbackTitle.innerText = "Incorrect";
+                feedbackTitle.className = "font-bold text-red-800";
+            }
+            feedbackText.innerText = curr.explanation;
+            
+            lucide.createIcons();
+            updateDonut();
+        }
+
+        function nextQuestion() {
+            const data = contentData[currentModuleId] || contentData[3];
+            quizIdx++;
+            if(quizIdx < data.quiz.length) showQuestion();
+            else showQuizResult();
+        }
+
         function updateDonut() {
+            const data = contentData[currentModuleId] || contentData[3];
+            const total = data.quiz.length;
             const outer = 314, inner = 239;
-            document.getElementById('ring-attempted').style.strokeDashoffset = outer - (totalAtt/10)*outer;
-            document.getElementById('ring-correct').style.strokeDashoffset = inner - (score/10)*inner;
-            document.getElementById('stat-attempted').innerText = totalAtt + "/10";
+            document.getElementById('ring-attempted').style.strokeDashoffset = outer - (totalAtt/total)*outer;
+            document.getElementById('ring-correct').style.strokeDashoffset = inner - (score/total)*inner;
+            document.getElementById('stat-attempted').innerText = `${totalAtt}/${total}`;
             document.getElementById('stat-correct').innerText = score;
             document.getElementById('accuracy-text').innerText = totalAtt ? Math.round((score/totalAtt)*100)+"%" : "0%";
         }
 
-        function selectOption(i) {
-            const data = contentData[currentModuleId] || contentData[3];
-            totalAtt++;
-            if(i === data.quiz[quizIdx].correct) score++;
-            updateDonut();
-            quizIdx++;
-            if(quizIdx < 10) showQuestion();
-            else showQuizResult();
-        }
-
         function showQuizResult() {
+            const data = contentData[currentModuleId] || contentData[3];
             document.getElementById('quiz-container').classList.add('hidden');
             document.getElementById('quiz-result').classList.remove('hidden');
-            document.getElementById('quiz-score').innerText = score + "/10";
+            document.getElementById('quiz-score').innerText = `${score}/${data.quiz.length}`;
         }
 
         function resetQuiz() {
             document.getElementById('quiz-result').classList.add('hidden');
             document.getElementById('quiz-container').classList.add('hidden');
             document.getElementById('quiz-start').classList.remove('hidden');
+            document.getElementById('quiz-feedback').classList.add('hidden');
             quizIdx = 0; score = 0; totalAtt = 0;
         }
 
-        window.onload = () => {
-            renderModules();
-        };
+        window.onload = () => { renderModules(); };
     </script>
 </body>
 </html>
