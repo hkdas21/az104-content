@@ -113,10 +113,7 @@
 
             <!-- QUIZ TAB -->
             <div id="quiz" class="tab-content space-y-12">
-                <!-- Quiz Area 1 (Injected via JS) -->
                 <div id="quiz-zone-0" class="quiz-zone space-y-4"></div>
-                
-                <!-- Quiz Area 2 (Injected via JS) -->
                 <div id="quiz-zone-1" class="quiz-zone space-y-4"></div>
             </div>
         </section>
@@ -154,63 +151,50 @@
                 ]}]
             },
             5: {
+                notes: [{ title: "Compute Basics", items: ["AV Set: 99.95% SLA.", "AV Zone: 99.99% SLA.", "VMSS: Horizontal scaling."] }],
+                flashcards: [{ q: "KEDA", a: "Kubernetes-based Event Driven Autoscaling." }],
+                quizzes: [
+                    { title: "Quiz 1: Virtual Machine Architecture", questions: [{ q: "Update Domain purpose?", options: ["Prevent hardware failure", "Manage maintenance reboots", "Scale instances", "Encrypt disks"], correct: 1, explanation: "Update domains ensure maintenance doesn't reboot all VMs at once." }] },
+                    { title: "Quiz 2: App Services & Containers", questions: [{ q: "KEDA use case?", options: ["Manual scaling", "Event-driven scaling", "Storage management", "VNET peering"], correct: 1, explanation: "KEDA is for event-driven autoscaling in Container Apps/K8s." }] }
+                ]
+            },
+            6: {
                 notes: [
-                    { title: "Azure VM Availability", items: ["Availability Sets: Protects against hardware failure (Fault Domains) and maintenance (Update Domains).", "Availability Zones: Protects against entire datacenter failure within a region.", "SLA: 99.99% for VMs in 2+ Zones; 99.95% for VMs in AV Sets."] },
-                    { title: "App Services & Containers", items: ["App Service Plan: Defines the set of compute resources for a web app to run.", "ACI Container Groups: Resources shared by a collection of containers.", "Container Apps: Serverless containers built on K8s and KEDA."] }
+                    { title: "Virtual Network Basics", items: ["Azure reserves 5 IP addresses in every subnet (.0, .1, .2, .3, .255).", "RFC 1918 Private ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.", "VNets cannot overlap if you intend to peer them."] },
+                    { title: "Security & Rules", items: ["NSG (Network Security Group): Layer 4 (TCP/UDP) filtering. Priority 100-4096.", "ASG (Application Security Group): Logical group for VMs to simplify NSG rules (e.g. 'WebServers' group).", "Service Endpoints: Secure access to Azure services over the backbone."] },
+                    { title: "Connectivity", items: ["Peering: Connecting VNets (Local or Global). Non-transitive by default.", "UDR (User Defined Routes): Override system routes to force traffic through NVAs.", "Next Hop types: Virtual Appliance, VNet Gateway, Internet, None."] }
                 ],
                 flashcards: [
-                    { q: "Fault Domain", a: "Group of VMs sharing common power and network switch." },
-                    { q: "KEDA", a: "Kubernetes-based Event Driven Autoscaling, used in Container Apps." }
+                    { q: "Azure Reserved IPs", a: "5 addresses per subnet: Network, Gateway, DNS (2), and Broadcast." },
+                    { q: "NSG Priority", a: "100 to 4096. Lower numbers have higher priority." },
+                    { q: "VNet Peering", a: "Connecting VNets via Microsoft backbone. Low latency, high bandwidth." },
+                    { q: "UDR", a: "User Defined Routes used to control traffic flow (e.g., through a Firewall)." },
+                    { q: "ASG", a: "Application Security Groups used to simplify NSG rules based on VM roles." }
                 ],
                 quizzes: [
                     { 
-                        title: "Quiz 1: Virtual Machine Architecture", 
+                        title: "Networking & Traffic Management", 
                         questions: [
-                            { q: "You need to ensure that virtual machines in a set are not all rebooted at the same time during planned Azure maintenance. What should you configure?", options: ["Fault Domains", "Update Domains", "Availability Zones", "Scale Sets"], correct: 1, explanation: "Update domains are used to ensure that only a portion of your VMs are rebooted at any given time during a planned maintenance event." },
-                            { q: "Which compute sizing strategy involves changing the size of a single virtual machine to provide more CPU and RAM?", options: ["Horizontal Scaling", "Vertical Scaling", "Load Balancing", "Autoscaling"], correct: 1, explanation: "Vertical scaling (Scaling Up) involves moving the VM to a larger size, which typically requires a reboot." },
-                            { q: "Which feature provides protection against a localized hardware failure (such as a power supply or network switch) within a single datacenter?", options: ["Fault Domains", "Update Domains", "Regional Pairs", "Vertical Scaling"], correct: 0, explanation: "Fault domains group VMs that share a common power source and network switch." },
-                            { q: "What is the maximum number of Fault Domains you can typically configure in an Azure Availability Set?", options: ["2", "3", "5", "20"], correct: 1, explanation: "In most regions, you can configure up to 3 Fault Domains." },
-                            { q: "You need to achieve a 99.99% availability SLA for your virtual machines. How should you deploy them?", options: ["Single instance with Premium SSD", "Two or more instances in an Availability Set", "Two or more instances across different Availability Zones", "Two or more instances in different Regions"], correct: 2, explanation: "99.99% SLA requires deployment across two or more Availability Zones in the same region." },
-                            { q: "What is the primary benefit of using Virtual Machine Scale Sets (VMSS)?", options: ["Highest single-instance SLA", "Automatic horizontal scaling based on demand", "Manual resizing of disks", "Shared storage between instances"], correct: 1, explanation: "VMSS allows you to deploy and manage a group of identical, load-balanced VMs that scale horizontally." },
-                            { q: "A company wants to run a non-critical background task that can be interrupted at any time. Which VM type offers the lowest cost for this scenario?", options: ["Reserved Instances", "Spot VMs", "Pay-as-you-go", "B-series Burstable"], correct: 1, explanation: "Spot VMs allow you to use unused capacity at a significant discount." },
-                            { q: "Which Azure disk type is the best choice for sub-millisecond latency and high-performance database workloads?", options: ["Standard HDD", "Standard SSD", "Premium SSD", "Ultra Disk"], correct: 3, explanation: "Ultra Disks provide the highest performance (up to 160k IOPS) and sub-millisecond latency." },
-                            { q: "When using Azure Bastion to connect to a VM, which port is typically opened on the VM's Network Security Group (NSG)?", options: ["TCP 3389", "TCP 22", "TCP 443", "No public ports are needed"], correct: 3, explanation: "Azure Bastion allows secure RDP/SSH access without needing to expose public IP addresses." },
-                            { q: "You deploy a VMSS with 5 instances. You want to ensure that instances are updated one by one during a scale-set update. Which upgrade policy should you use?", options: ["Manual", "Automatic", "Rolling", "Scheduled"], correct: 2, explanation: "The Rolling upgrade policy updates the instances in batches, ensuring availability." },
-                            { q: "Which VM series is specifically designed for 'burstable' workloads?", options: ["D-Series", "F-Series", "B-Series", "M-Series"], correct: 2, explanation: "The B-Series (Burstable) is cost-effective for workloads that typically run at a low baseline CPU performance." },
-                            { q: "Which feature allows you to run your VMs on physical servers dedicated to your organization?", options: ["Azure Bastion", "Azure Dedicated Host", "Proximity Placement Groups", "Availability Zones"], correct: 1, explanation: "Azure Dedicated Host provides a physical server dedicated to one Azure subscription." },
-                            { q: "What happens to data stored on the temporary 'D:' drive of an Azure VM when the VM is stopped and deallocated?", options: ["Data is persisted", "Data is lost", "Data is moved to a Snapshot", "Data is encrypted"], correct: 1, explanation: "The temporary drive is hosted on the physical host's local storage and lost upon deallocation." },
-                            { q: "Which tool allows you to automate post-deployment tasks like installing software inside a VM?", options: ["Resource Groups", "VM Extensions", "NSGs", "Azure Policy"], correct: 1, explanation: "VM Extensions (like the Custom Script Extension) provide post-deployment automation." },
-                            { q: "A Proximity Placement Group is used to achieve which goal?", options: ["High Availability", "Disaster Recovery", "Lowest possible network latency between VMs", "Compliance with data residency"], correct: 2, explanation: "Proximity Placement Groups ensure resources are physically located close to each other." },
-                            { q: "When resizing a VM, what is the most common reason for receiving an 'Allocation Failed' error?", options: ["Wrong subscription", "No disk space", "The current hardware cluster doesn't support the new size", "Billing limit reached"], correct: 2, explanation: "Resizing requires moving the VM; if the cluster doesn't support the size, you must deallocate first." },
-                            { q: "What is the maximum number of Update Domains in an Availability Set?", options: ["3", "5", "10", "20"], correct: 3, explanation: "You can configure up to 20 Update Domains." },
-                            { q: "You need to capture a template of a configured VM to deploy identical copies. What must you do first inside the VM?", options: ["Install Azure CLI", "Run Sysprep (Windows) or waagent -deprovision (Linux)", "Create a Snapshot", "Resize the VM"], correct: 1, explanation: "You must generalize the OS first to remove instance-specific information." },
-                            { q: "Which encryption method is used to encrypt the OS and Data disks using BitLocker or DM-Crypt?", options: ["SSE", "Azure Disk Encryption (ADE)", "VPN", "HTTPS"], correct: 1, explanation: "ADE uses BitLocker/DM-Crypt and integrates with Azure Key Vault." },
-                            { q: "Which VM state indicates that compute charges have stopped?", options: ["Stopped", "Suspended", "Stopped (Deallocated)", "Shutting Down"], correct: 2, explanation: "Only 'Stopped (Deallocated)' releases the VM from the physical host and stops compute billing." }
-                        ]
-                    },
-                    { 
-                        title: "Quiz 2: App Services & Container Solutions", 
-                        questions: [
-                            { q: "What defines the compute resources, pricing tier, and region for an Azure Web App?", options: ["Resource Group", "App Service Plan", "Deployment Slot", "Traffic Manager"], correct: 1, explanation: "An App Service Plan represents a set of compute resources that a web app runs on." },
-                            { q: "Which App Service Plan pricing tier is the minimum required to use Deployment Slots?", options: ["Basic", "Standard", "Premium", "Isolated"], correct: 1, explanation: "The Standard tier is the minimum level required to support deployment slots." },
-                            { q: "You want to test a new version of your web app with 10% of your production traffic. Which feature should you use?", options: ["Traffic Manager", "Deployment Slots (Testing in production)", "App Service Plan Scaling", "WebJobs"], correct: 1, explanation: "Deployment slots allow you to route a specific percentage of traffic to a non-production slot for testing." },
-                            { q: "In Azure App Service, what happens when you perform a 'Swap' operation between a staging slot and the production slot?", options: ["The code is copied", "IP addresses are updated in DNS", "The virtual machine is restarted", "The configuration and content are exchanged between slots"], correct: 3, explanation: "A swap exchanges the source and target slots' configurations and content, usually with zero downtime." },
-                            { q: "Which scaling method in App Service involves adding more CPU, Memory, or Disk space to the existing instances?", options: ["Scale Out", "Scale Up", "Autoscale", "Manual Scale"], correct: 1, explanation: "Scaling up (Vertical Scaling) involves moving to a higher pricing tier with more resources per instance." },
-                            { q: "Azure App Service Autoscale can be triggered by which of the following?", options: ["CPU Percentage", "Memory Percentage", "Schedule (Recurring)", "All of the above"], correct: 3, explanation: "Autoscale rules can be based on metrics (CPU/RAM) or specific schedules." },
-                            { q: "What is a 'Container Group' in Azure Container Instances (ACI)?", options: ["A collection of ACI instances in different regions", "A collection of containers that are scheduled on the same host machine and share a lifecycle", "A Kubernetes namespace", "A Docker Swarm"], correct: 1, explanation: "A container group is the top-level resource in ACI. Containers in a group share a lifecycle, resources, local network, and storage volumes." },
-                            { q: "You need to run a simple containerized task that completes in minutes. You want to avoid managing servers or orchestrators. Which service is best?", options: ["AKS", "ACI", "VMSS", "Azure App Service"], correct: 1, explanation: "Azure Container Instances (ACI) is the fastest and simplest way to run a container in Azure without managing any virtual machines." },
-                            { q: "Which restart policy is the default for Azure Container Instances?", options: ["Always", "Never", "OnFailure", "RestartAlways"], correct: 0, explanation: "By default, ACI uses the 'Always' restart policy for container groups." },
-                            { q: "What is the 'AKS Virtual Node' add-on used for?", options: ["Adding more physical servers to AKS", "Deploying serverless containers to ACI from AKS", "Upgrading the Kubernetes version", "Managing Windows nodes"], correct: 1, explanation: "Virtual Nodes allow AKS to quickly scale out into serverless containers running in ACI to handle traffic bursts." },
-                            { q: "Azure Container Apps is built on top of which underlying technologies?", options: ["Docker Swarm and Nginx", "Kubernetes, KEDA, Dapr, and Envoy", "VMSS and Azure Load Balancer", "Service Fabric"], correct: 1, explanation: "Azure Container Apps is a serverless platform built on Kubernetes, utilizing KEDA for scaling and Dapr for microservices." },
-                            { q: "What is KEDA in the context of Azure Container Apps?", options: ["A deployment tool", "Kubernetes-based Event Driven Autoscaling", "A networking protocol", "An encryption service"], correct: 1, explanation: "KEDA allows Container Apps to scale based on events like message queue depth or HTTP traffic." },
-                            { q: "How does Azure Container Apps differ from AKS regarding cluster management?", options: ["Both require manual node patching", "Container Apps abstracts away the Kubernetes control plane and nodes", "AKS is serverless while Container Apps is not", "There is no difference"], correct: 1, explanation: "Container Apps is serverless and managed; users don't manage the underlying Kubernetes cluster or nodes." },
-                            { q: "You need to run multiple versions of a containerized application in Azure Container Apps simultaneously. What is this concept called?", options: ["Slots", "Revisions", "Nodes", "Deployments"], correct: 1, explanation: "In Container Apps, 'Revisions' are immutable snapshots of your application that allow for multiple versions to run." },
-                            { q: "Which component in Azure Container Apps provides a consistent set of APIs for microservices like service discovery and state management?", options: ["KEDA", "Dapr", "Envoy", "Azure Policy"], correct: 1, explanation: "Dapr (Distributed Application Runtime) is integrated into Container Apps to simplify building distributed systems." },
-                            { q: "A 'Consumption' plan in Azure Container Apps charges you based on what?", options: ["Hourly reservation", "Per-second resource allocation (vCPU and Memory) and total requests", "Fixed monthly fee", "Number of containers"], correct: 1, explanation: "The Consumption plan is purely serverless, charging based on active usage per second." },
-                            { q: "What is the primary protocol used by Azure File Sync to communicate with on-premises servers?", options: ["SMB", "HTTPS", "FTP", "NFS"], correct: 1, explanation: "Azure File Sync communicates with the cloud service over port 443 (HTTPS)." },
-                            { q: "In App Service, where should you store sensitive information like database connection strings?", options: ["In the app's web.config", "In the Application Settings / Connection Strings section of the portal", "In a public Git repository", "In a local text file on the VM"], correct: 1, explanation: "Connection Strings in the portal are encrypted at rest and injected into the app at runtime, making them secure." },
-                            { q: "Can an App Service Plan host multiple web apps?", options: ["No, one app per plan", "Yes, all apps in the plan share the compute resources", "Yes, but they must be in different regions", "Only in the Premium tier"], correct: 1, explanation: "Multiple apps can share one plan, which helps optimize costs by consolidating workloads onto the same compute resources." },
-                            { q: "Which ACI feature allows containers to share a local network and storage volumes?", options: ["Container Groups", "Virtual Networks", "Resource Groups", "Azure Files"], correct: 0, explanation: "Container Groups are the logical boundary in ACI that allows multi-container scenarios where containers share the same environment." }
+                            { q: "How many IP addresses does Azure reserve in a /24 subnet (256 addresses total)?", options: ["2", "3", "5", "8"], correct: 2, explanation: "Azure always reserves 5 IP addresses in every subnet: .0 (Network), .1 (Gateway), .2/.3 (DNS), and .255 (Broadcast)." },
+                            { q: "What is the priority range for Network Security Group (NSG) rules?", options: ["1-1000", "100-4096", "0-65535", "10-100"], correct: 1, explanation: "NSG rules have a priority range from 100 to 4096. Lower numbers are processed first." },
+                            { q: "You want to group several VMs as 'WebServers' so you can use that name in NSG rules instead of individual IP addresses. Which feature should you use?", options: ["Load Balancer", "Application Gateway", "Application Security Group (ASG)", "Service Endpoints"], correct: 2, explanation: "ASGs allow you to define network security policies based on workloads, rather than explicit IP addresses." },
+                            { q: "By default, is VNet Peering transitive? (If A is peered with B, and B with C, can A talk to C?)", options: ["Yes", "No", "Only if in the same region", "Only for Standard VNets"], correct: 1, explanation: "VNet peering is non-transitive. To allow A to talk to C through B, you would need to set up a Gateway Transit or a hub-and-spoke NVA." },
+                            { q: "Which tool should you use to force all traffic from a subnet to pass through a central Firewall appliance?", options: ["NSG", "User Defined Route (UDR)", "Load Balancer", "Service Endpoint"], correct: 1, explanation: "UDRs allow you to override system routes by defining a 'Next Hop' of 'Virtual Appliance'." },
+                            { q: "What is the 'Next Hop' type used in a UDR to effectively black-hole or drop traffic?", options: ["None", "Virtual Appliance", "Internet", "VNet Gateway"], correct: 0, explanation: "A next hop of 'None' causes any traffic matching that route to be dropped." },
+                            { q: "At which OSI layer does the Azure Load Balancer operate?", options: ["Layer 2", "Layer 3", "Layer 4", "Layer 7"], correct: 2, explanation: "Azure Load Balancer is a Layer 4 (TCP/UDP) load balancer." },
+                            { q: "Which Azure load balancing solution supports URL path-based routing and SSL termination?", options: ["Azure Load Balancer", "Application Gateway", "Traffic Manager", "Azure Front Door"], correct: 1, explanation: "Application Gateway is a Layer 7 load balancer that handles HTTP/HTTPS traffic, including path-based routing." },
+                            { q: "What is the maximum number of VNets you can peer with a single VNet by default?", options: ["10", "50", "500", "Unlimited"], correct: 1, explanation: "The default limit is 50, though it can be increased. (Note: Exam often focuses on the concept of peering constraints)." },
+                            { q: "Which Load Balancer SKU is required if you want to balance traffic across multiple Availability Zones?", options: ["Basic", "Standard", "Premium", "Ultra"], correct: 1, explanation: "Only the Standard Load Balancer supports Availability Zones (Zonal or Zone-Redundant)." },
+                            { q: "You need to secure access to an Azure SQL Database so it only accepts traffic from a specific VNet subnet. Which feature is most appropriate?", options: ["VNet Peering", "Service Endpoints", "UDR", "ASG"], correct: 1, explanation: "Service Endpoints provide secure and direct connectivity to Azure services over the Microsoft backbone." },
+                            { q: "Which Application Gateway feature protects web applications from common vulnerabilities like SQL injection or Cross-site scripting?", options: ["SSL Offloading", "Web Application Firewall (WAF)", "Multi-site hosting", "Cookie-based affinity"], correct: 1, explanation: "The WAF provides centralized protection for web applications from common exploits." },
+                            { q: "What is the default behavior if two peered VNets have overlapping IP address ranges?", options: ["They merge ranges", "Peering fails/cannot be established", "Only the smaller range wins", "Azure automatically NATs them"], correct: 1, explanation: "VNets with overlapping address spaces cannot be peered." },
+                            { q: "Which component of an Azure Load Balancer monitors the health of the backend VMs?", options: ["Inbound NAT rule", "Health Probe", "Backend Pool", "Frontend IP"], correct: 1, explanation: "Health probes determine which backend instances are healthy enough to receive traffic." },
+                            { q: "To allow traffic from the internet to a VM behind an NSG, which default rule might you need to override with a higher priority rule?", options: ["AllowVNetInbound", "AllowAzureLoadBalancerInbound", "DenyAllInbound", "AllowInternetOutbound"], correct: 2, explanation: "DenyAllInbound is a default rule with priority 65500. You must create a rule with a lower number (higher priority) to allow traffic." },
+                            { q: "What is Global VNet Peering?", options: ["Connecting VNets in the same region", "Connecting VNets across different Azure regions", "Connecting Azure to AWS", "Connecting to on-premises"], correct: 1, explanation: "Global peering connects VNets in different Azure regions." },
+                            { q: "Which distribution mode does the Azure Load Balancer use by default?", options: ["Round Robin", "5-tuple hash (Source IP, Port, Dest IP, Port, Protocol)", "Least Connections", "URL Path"], correct: 1, explanation: "The default is a 5-tuple hash to map traffic to available servers." },
+                            { q: "Can an Application Gateway be used for non-HTTP traffic, such as legacy SQL traffic on port 1433?", options: ["Yes", "No", "Only if SSL is used", "Only with WAF enabled"], correct: 1, explanation: "No, Application Gateway is strictly for Layer 7 (HTTP/HTTPS/HTTP2/WebSocket) traffic. Use Load Balancer for port 1433." },
+                            { q: "What is 'Gateway Transit' in the context of VNet Peering?", options: ["Allowing a peered VNet to use the VPN/ExpressRoute gateway of the other VNet", "Allowing peering across regions", "Encrypting the peering traffic", "Speeding up the connection"], correct: 0, explanation: "Gateway transit allows one VNet to 'share' its gateway with its peered neighbors." },
+                            { q: "What is the difference between a Public IP and a Private IP in an Azure VNet?", options: ["Private IPs are for internet access", "Public IPs are reachable from outside Azure; Private IPs are for internal communication", "There is no difference", "Public IPs are cheaper"], correct: 1, explanation: "Public IPs allow resources to communicate with the internet; Private IPs are for communication within the VNet or via VPN/Peering." }
                         ]
                     }
                 ]
@@ -218,7 +202,7 @@
         };
 
         let currentModuleId = null;
-        let activeQuizStates = []; // Track state for multiple quizzes
+        let activeQuizStates = [];
 
         function showView(viewId) {
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
@@ -253,7 +237,6 @@
                 quizzes: [{ title: "Coming Soon", questions: [] }]
             };
 
-            // Notes
             document.getElementById('notes-container').innerHTML = data.notes.map(note => `
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h4 class="font-bold text-slate-800 mb-3">${note.title}</h4>
@@ -261,7 +244,6 @@
                 </div>
             `).join('');
 
-            // Flashcards
             document.getElementById('flashcards-grid').innerHTML = data.flashcards.map((c, i) => `
                 <div class="flashcard-container" id="fc-${i}" onclick="this.classList.toggle('flipped')">
                     <div class="flashcard-inner">
@@ -271,7 +253,6 @@
                 </div>
             `).join('');
 
-            // Quizzes
             activeQuizStates = data.quizzes.map(() => ({ idx: 0, score: 0, attempted: 0, isAnswering: true }));
             renderQuizZones(data.quizzes);
             lucide.createIcons();
@@ -279,7 +260,7 @@
 
         function renderQuizZones(quizzes) {
             const zones = [document.getElementById('quiz-zone-0'), document.getElementById('quiz-zone-1')];
-            zones.forEach(z => z.innerHTML = ''); // Clear
+            zones.forEach(z => z.innerHTML = '');
             
             quizzes.forEach((q, i) => {
                 const zone = zones[i];
@@ -333,7 +314,6 @@
             });
         }
 
-        // Multiple Quiz Logic
         function startQuiz(qIdx) {
             document.getElementById(`quiz-start-${qIdx}`).classList.add('hidden');
             document.getElementById(`quiz-container-${qIdx}`).classList.remove('hidden');
@@ -412,7 +392,6 @@
             const state = activeQuizStates[qIdx];
             const total = contentData[currentModuleId].quizzes[qIdx].questions.length;
             const outer = 314, inner = 239;
-            
             document.getElementById(`ring-attempted-${qIdx}`).style.strokeDashoffset = outer - (state.attempted/total)*outer;
             document.getElementById(`ring-correct-${qIdx}`).style.strokeDashoffset = inner - (state.score/total)*inner;
             document.getElementById(`stat-attempted-${qIdx}`).innerText = `${state.attempted}/${total}`;
